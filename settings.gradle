@@ -13,6 +13,8 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "HelloPlugin"
-include ':mainApp'
-include ':nativeApp'
-include ':viewApp'
+include ':app_main'
+include ':app_setting'
+include ':app_view'
+include ':lib_plugin'
+include ':lib_plugin_child'
