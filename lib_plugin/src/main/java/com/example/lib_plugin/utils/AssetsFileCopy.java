@@ -10,8 +10,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * @Description: 用于从Assets文件夹中复制资源文件
@@ -20,8 +18,6 @@ import java.util.concurrent.Executors;
  * @UpdateDate: 2023/4/23 15:49
  */
 public class AssetsFileCopy {
-    private ExecutorService execute = Executors.newSingleThreadExecutor();
-    private SharedPreferences sp;
 
     public void searchFile(Context context) {
         searchFile(context, "");
@@ -76,32 +72,30 @@ public class AssetsFileCopy {
             Log.d(PluginCode.TAG, "md5相等,文件不用更新");
             return;
         }
-        execute.execute(() -> {
-            InputStream in = null;
-            FileOutputStream out = null;
-            try {
-                if (0 != filePath.length())
-                    in = context.getAssets().open(filePath + "/" + fileName);
-                else
-                    in = context.getAssets().open(fileName);
-                out = new FileOutputStream(outFile);
+        InputStream in = null;
+        FileOutputStream out = null;
+        try {
+            if (0 != filePath.length())
+                in = context.getAssets().open(filePath + "/" + fileName);
+            else
+                in = context.getAssets().open(fileName);
+            out = new FileOutputStream(outFile);
 
-                byte[] buf = new byte[1024];
-                int len;
-                while ((len = in.read(buf)) > 0) {
-                    out.write(buf, 0, len);
-                }
-            } catch (IOException ignored) {
-            } finally {
-                try {
-                    if (in != null)
-                        in.close();
-                    if (out != null)
-                        out.close();
-                } catch (IOException ignored) {
-                }
+            byte[] buf = new byte[1024];
+            int len;
+            while ((len = in.read(buf)) > 0) {
+                out.write(buf, 0, len);
             }
-        });
+        } catch (IOException ignored) {
+        } finally {
+            try {
+                if (in != null)
+                    in.close();
+                if (out != null)
+                    out.close();
+            } catch (IOException ignored) {
+            }
+        }
     }
 
     /**
@@ -112,7 +106,7 @@ public class AssetsFileCopy {
     private boolean isUpdateAndCopyFile(Context context, File file) {
         //文件不存在，需要更新文件
         if (!file.exists()) return true;
-        sp = context.getSharedPreferences(AssetsFileCopy.class.getName(), Context.MODE_PRIVATE);
+        SharedPreferences sp = context.getSharedPreferences(AssetsFileCopy.class.getName(), Context.MODE_PRIVATE);
         //文件存在但在SharedPreferences中没有记录(比如通过其他地方写入的文件)：true
         if (!sp.contains(file.getPath()))
             return true;

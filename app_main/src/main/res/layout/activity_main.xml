@@ -9,6 +9,7 @@
     <Button
         android:id="@+id/btn1"
         android:layout_width="wrap_content"
+        android:text="view"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@id/btn2"
@@ -18,6 +19,7 @@
     <Button
         android:id="@+id/btn2"
         android:layout_width="wrap_content"
+        android:text="setting"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

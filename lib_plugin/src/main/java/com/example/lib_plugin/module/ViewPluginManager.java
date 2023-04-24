@@ -37,6 +37,11 @@ public class ViewPluginManager extends PluginManager {
     }
 
     @Override
+    public String getApkName() {
+        return "app_view-release.apk";
+    }
+
+    @Override
     public String jniFolderName() {
         return null;
     }

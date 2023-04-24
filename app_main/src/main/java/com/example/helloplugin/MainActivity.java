@@ -24,14 +24,8 @@ public class MainActivity extends AppCompatActivity implements PluginManager.Loa
         setContentView(R.layout.activity_main);
         Button btn1 = findViewById(R.id.btn1);
         Button btn2 = findViewById(R.id.btn2);
-        btn1.setText("view");
-        btn2.setText("setting");
-        btn1.setOnClickListener(v -> {
-            ViewPluginManager.getInstance().loadPlugin(getApplicationContext(), this);
-        });
-        btn2.setOnClickListener(v -> {
-            SettingPluginManager.getInstance().loadPlugin(getApplicationContext(), this);
-        });
+        btn1.setOnClickListener(v -> ViewPluginManager.getInstance().loadPlugin(getApplicationContext(), this));
+        btn2.setOnClickListener(v -> SettingPluginManager.getInstance().loadPlugin(getApplicationContext(), this));
     }
 
 
@@ -41,7 +35,7 @@ public class MainActivity extends AppCompatActivity implements PluginManager.Loa
             Log.w(PluginCode.TAG, "加载apk失败");
             return;
         }
-        Log.w(PluginCode.TAG, "加载apk成功");
+        Log.d(PluginCode.TAG, "加载apk成功");
         switch (type) {
             case VIEW:
                 ViewPluginManager.getInstance().gotoActivity(getApplicationContext(), "com.example.app_view.MainActivity", type);

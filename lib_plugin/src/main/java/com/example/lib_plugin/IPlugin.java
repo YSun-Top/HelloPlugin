@@ -1,7 +1,8 @@
 package com.example.lib_plugin;
 
-import android.app.Activity;
 import android.os.Bundle;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 /**
  * @Description: java类作用描述
@@ -16,21 +17,9 @@ public interface IPlugin {
     /**
      * 给插件Activity指定上下文
      */
-    void attach(Activity activity);
+    void attach(AppCompatActivity activity);
 
     // 以下全都是Activity生命周期函数,
     // 插件Activity本身 在被用作"插件"的时候不具备生命周期，由宿主里面的代理Activity类代为管理
     void onCreate(Bundle saveInstanceState);
-
-    void onStart();
-
-    void onResume();
-
-    void onRestart();
-
-    void onPause();
-
-    void onStop();
-
-    void onDestroy();
 }

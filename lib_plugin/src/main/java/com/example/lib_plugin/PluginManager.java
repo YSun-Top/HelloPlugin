@@ -1,6 +1,8 @@
 package com.example.lib_plugin;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
@@ -21,7 +23,7 @@ import java.lang.reflect.Method;
 import dalvik.system.DexClassLoader;
 
 /**
- * @Description: java类作用描述
+ * @Description: 插件管理类，负责插件的加载、插件页面的打开等
  * @Author: Void
  * @CreateDate: 2023/4/23 16:36
  * @UpdateDate: 2023/4/23 16:36
@@ -29,7 +31,6 @@ import dalvik.system.DexClassLoader;
 public abstract class PluginManager {
     public static final String TAG_CLASS_NAME = "className";
     public static final String TAG_FROM = "from";
-    public static final String TYPE = "PluginType"; //识别那个插件管理
 
     private WeakReference<Context> weakReference;
     protected PackageInfo packageInfo;//包信息
@@ -44,6 +45,8 @@ public abstract class PluginManager {
 
     public abstract PluginType getPluginType();
 
+    public abstract String getApkName();
+
     /**
      * assets目录下存放so文件的文件夹名字
      */
@@ -56,19 +59,7 @@ public abstract class PluginManager {
      */
     public String getPluginApkByType() {
         File externalFilesDir = weakReference.get().getDir("plugin", Context.MODE_PRIVATE);
-        StringBuilder sBuilder = new StringBuilder(externalFilesDir.getPath());
-        sBuilder.append(File.separator);
-        switch (getPluginType()) {
-            case VIEW:
-                sBuilder.append("app_view-release.apk");
-                break;
-            case SETTING:
-                sBuilder.append("app_setting-release.apk");
-                break;
-            default:
-                return null;
-        }
-        return sBuilder.toString();
+        return externalFilesDir.getPath() + File.separator + getApkName();
     }
 
     public void loadPlugin(Context context, LoadCallback callback) {
@@ -85,13 +76,12 @@ public abstract class PluginManager {
             callback.onResult(getPluginType(), false);
             return;
         }
-
         packageInfo = weakReference.get().getPackageManager().getPackageArchiveInfo(apkPath, PackageManager.GET_ACTIVITIES);
         if (packageInfo == null) {
             callback.onResult(getPluginType(), false);
             return;
         }
-        Log.e(PluginCode.TAG, "包信息获取成功");
+        Log.d(PluginCode.TAG, "包信息获取成功");
 
         //类加载器，DexClassLoader专门负责外部dex的类
         File outFile = weakReference.get().getDir("odex", Context.MODE_PRIVATE);
@@ -106,6 +96,7 @@ public abstract class PluginManager {
         //创建AssetManager，然后创建Resources
         try {
             AssetManager assetManager = AssetManager.class.newInstance();
+            @SuppressLint("DiscouragedPrivateApi")
             Method method = AssetManager.class.getDeclaredMethod("addAssetPath", String.class);
             method.invoke(assetManager, apkPath);
             resources = new Resources(assetManager, weakReference.get().getResources().getDisplayMetrics(), weakReference.get().getResources().getConfiguration());
@@ -117,6 +108,9 @@ public abstract class PluginManager {
 
     public void gotoActivity(Context context, @NonNull String realActivityClassName, PluginType type) {
         ProxyActivity.newStartActivity(context, realActivityClassName, type);
+    }
+    public void gotoActivity(Context context, @NonNull Intent intent, PluginType type) {
+        ProxyActivity.newStartActivity(context, intent, type);
     }
 
     public interface LoadCallback {

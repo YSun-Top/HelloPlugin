@@ -37,6 +37,11 @@ public class SettingPluginManager extends PluginManager {
     }
 
     @Override
+    public String getApkName() {
+        return "app_setting-release.apk";
+    }
+
+    @Override
     public String jniFolderName() {
         return "jniLibs_app_setting";
     }

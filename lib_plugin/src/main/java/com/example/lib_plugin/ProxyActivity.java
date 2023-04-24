@@ -1,14 +1,16 @@
 package com.example.lib_plugin;
 
-import android.app.Activity;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Window;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.lib_plugin.module.SettingPluginManager;
 import com.example.lib_plugin.module.ViewPluginManager;
@@ -19,12 +21,13 @@ import com.example.lib_plugin.module.ViewPluginManager;
  * @CreateDate: 2023/4/23 18:29
  * @UpdateDate: 2023/4/23 18:29
  */
-public class ProxyActivity extends Activity {
+public class ProxyActivity extends AppCompatActivity {
     private IPlugin iPlugin;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         boolean flag = getIntent().getBooleanExtra(FLAG, false);
         if (!flag) {
             throw new RuntimeException("请使用newStartActivity()启动代理Activity");
@@ -36,9 +39,6 @@ public class ProxyActivity extends Activity {
         try {
             // 通过DexClassLoader拿到目标Activity
             Class<?> realActivityClz = PluginManager.getPluginManager(type).getDexClassLoader().loadClass(realActivityName);
-//            if (!realActivityClz.isAssignableFrom(IPlugin.class)) {
-//                throw new RuntimeException("插件APK的Activity应该是IPlugin的子类！");
-//            }
             Object obj = realActivityClz.newInstance();
             if (!(obj instanceof  IPlugin)){
                 throw new RuntimeException("插件APK的Activity应该是IPlugin的子类！");
@@ -46,59 +46,13 @@ public class ProxyActivity extends Activity {
             iPlugin = (IPlugin) obj;
             iPlugin.attach(this);
             //反射创建的插件Activity的生命周期函数不会被执行，那么，就由ProxyActivity代为执行
-            iPlugin.onCreate(null);
+            Bundle bundle=new Bundle();
+            bundle.putInt(PluginManager.TAG_FROM,IPlugin.FROM_EXTERNAL);
+            iPlugin.onCreate(bundle);
         } catch (Exception e) {
             e.printStackTrace();
         }
         if (iPlugin == null) finish();
-    }
-
-    @Override
-    protected void onStart() {
-        if (iPlugin != null) {
-            iPlugin.onStart();
-        }
-        super.onStart();
-    }
-
-    @Override
-    protected void onResume() {
-        if (iPlugin != null) {
-            iPlugin.onResume();
-        }
-        super.onResume();
-    }
-
-    @Override
-    protected void onRestart() {
-        if (iPlugin != null) {
-            iPlugin.onRestart();
-        }
-        super.onRestart();
-    }
-
-    @Override
-    protected void onPause() {
-        if (iPlugin != null) {
-            iPlugin.onPause();
-        }
-        super.onPause();
-    }
-
-    @Override
-    protected void onStop() {
-        if (iPlugin != null) {
-            iPlugin.onStop();
-        }
-        super.onStop();
-    }
-
-    @Override
-    protected void onDestroy() {
-        if (iPlugin != null) {
-            iPlugin.onDestroy();
-        }
-        super.onDestroy();
     }
 
     @Override
@@ -135,6 +89,17 @@ public class ProxyActivity extends Activity {
         Intent intent = new Intent(context, ProxyActivity.class);
         intent.putExtra(FLAG, true);
         intent.putExtra(PluginManager.TAG_CLASS_NAME, realActivityClassName);
+        intent.putExtra(PluginManager.TAG_FROM, IPlugin.FROM_EXTERNAL);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(intent);
+    }
+
+    public static void newStartActivity(Context context,@NonNull Intent intent,PluginType type){
+        ProxyActivity.type = type;
+        intent.setComponent(new ComponentName(context, ProxyActivity.class));
+        intent.putExtra(FLAG, true);
+        intent.putExtra(PluginManager.TAG_CLASS_NAME, intent.getComponent().getClassName());
+        intent.putExtra(PluginManager.TAG_FROM, IPlugin.FROM_EXTERNAL);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
     }
